@@ -1,0 +1,264 @@
+import 'package:flutter/material.dart';
+import 'package:uuid/uuid.dart';
+
+import '../../../../core/format/formatters.dart';
+import '../../domain/trip.dart';
+
+class AddTripSheet extends StatefulWidget {
+  const AddTripSheet({
+    required this.selectedDate,
+    required this.onSave,
+    super.key,
+  });
+
+  final DateTime selectedDate;
+  final Future<void> Function(Trip trip) onSave;
+
+  @override
+  State<AddTripSheet> createState() => _AddTripSheetState();
+}
+
+class _AddTripSheetState extends State<AddTripSheet> {
+  final _formKey = GlobalKey<FormState>();
+  final _amountController = TextEditingController();
+  final _commissionController = TextEditingController();
+  final _id = const Uuid().v4();
+  late final Duration _offset;
+  late DateTime _start;
+  late DateTime _end;
+  PaymentMethod _payment = PaymentMethod.cash;
+  bool _saving = false;
+  String? _serverError;
+
+  @override
+  void initState() {
+    super.initState();
+    final now = DateTime.now();
+    _offset = now.timeZoneOffset;
+    _start = DateTime(
+      widget.selectedDate.year,
+      widget.selectedDate.month,
+      widget.selectedDate.day,
+      now.hour,
+      now.minute,
+    );
+    _end = _start.add(const Duration(minutes: 20));
+  }
+
+  @override
+  void dispose() {
+    _amountController.dispose();
+    _commissionController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) => SafeArea(
+    child: Padding(
+      padding: EdgeInsets.fromLTRB(
+        24,
+        12,
+        24,
+        24 + MediaQuery.viewInsetsOf(context).bottom,
+      ),
+      child: Form(
+        key: _formKey,
+        child: SingleChildScrollView(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Center(
+                child: Container(
+                  width: 40,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF9CA3AF),
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 16),
+              const Text(
+                'Новая поездка',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  color: Color(0xFF1E293B),
+                  fontFamily: 'Manrope',
+                  fontSize: 22,
+                  fontWeight: FontWeight.w800,
+                ),
+              ),
+              const SizedBox(height: 20),
+              _DateTimeField(
+                label: 'Начало',
+                value: _start,
+                onChanged: (value) => setState(() => _start = value),
+              ),
+              const SizedBox(height: 12),
+              _DateTimeField(
+                label: 'Конец',
+                value: _end,
+                onChanged: (value) => setState(() => _end = value),
+              ),
+              const SizedBox(height: 12),
+              TextFormField(
+                controller: _amountController,
+                keyboardType: TextInputType.number,
+                decoration: const InputDecoration(
+                  labelText: 'Сумма',
+                  suffixText: '₸',
+                  border: OutlineInputBorder(),
+                ),
+                validator: (value) {
+                  final amount = int.tryParse(value ?? '');
+                  if (amount == null || amount <= 0) {
+                    return 'Сумма должна быть больше нуля';
+                  }
+                  return null;
+                },
+              ),
+              const SizedBox(height: 12),
+              SegmentedButton<PaymentMethod>(
+                segments: const [
+                  ButtonSegment(
+                    value: PaymentMethod.cash,
+                    label: Text('Наличные'),
+                    icon: Icon(Icons.payments_outlined),
+                  ),
+                  ButtonSegment(
+                    value: PaymentMethod.card,
+                    label: Text('Карта'),
+                    icon: Icon(Icons.credit_card),
+                  ),
+                ],
+                selected: {_payment},
+                onSelectionChanged: (value) =>
+                    setState(() => _payment = value.first),
+              ),
+              const SizedBox(height: 12),
+              TextFormField(
+                controller: _commissionController,
+                keyboardType: TextInputType.number,
+                decoration: const InputDecoration(
+                  labelText: 'Комиссия',
+                  suffixText: '₸',
+                  border: OutlineInputBorder(),
+                ),
+                validator: (value) {
+                  final commission = int.tryParse(value ?? '');
+                  final amount = int.tryParse(_amountController.text);
+                  if (commission == null || commission < 0) {
+                    return 'Комиссия не может быть отрицательной';
+                  }
+                  if (amount != null && commission > amount) {
+                    return 'Комиссия не может быть больше суммы';
+                  }
+                  return null;
+                },
+              ),
+              if (_serverError != null)
+                Padding(
+                  padding: const EdgeInsets.only(top: 12),
+                  child: Text(
+                    _serverError!,
+                    style: TextStyle(
+                      color: Theme.of(context).colorScheme.error,
+                    ),
+                  ),
+                ),
+              const SizedBox(height: 20),
+              FilledButton(
+                onPressed: _saving ? null : _save,
+                child: _saving
+                    ? const SizedBox(
+                        width: 20,
+                        height: 20,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      )
+                    : const Text('Сохранить'),
+              ),
+            ],
+          ),
+        ),
+      ),
+    ),
+  );
+
+  Future<void> _save() async {
+    if (_saving) return;
+    FocusManager.instance.primaryFocus?.unfocus();
+    setState(() => _serverError = null);
+    if (!_formKey.currentState!.validate()) return;
+    if (!_end.isAfter(_start)) {
+      setState(() => _serverError = 'Конец должен быть позже начала');
+      return;
+    }
+
+    final amount = int.parse(_amountController.text);
+    final commission = int.parse(_commissionController.text);
+    setState(() => _saving = true);
+    try {
+      await widget.onSave(
+        Trip(
+          id: _id,
+          start: TripTime(local: _start, offset: _offset),
+          end: TripTime(local: _end, offset: _offset),
+          amount: amount,
+          payment: _payment,
+          commission: commission,
+        ),
+      );
+      if (mounted) Navigator.of(context).pop(true);
+    } catch (error) {
+      if (mounted) {
+        setState(() => _serverError = error.toString());
+      }
+    } finally {
+      if (mounted) setState(() => _saving = false);
+    }
+  }
+}
+
+class _DateTimeField extends StatelessWidget {
+  const _DateTimeField({
+    required this.label,
+    required this.value,
+    required this.onChanged,
+  });
+
+  final String label;
+  final DateTime value;
+  final ValueChanged<DateTime> onChanged;
+
+  @override
+  Widget build(BuildContext context) => InkWell(
+    onTap: () async {
+      final date = await showDatePicker(
+        context: context,
+        firstDate: DateTime(2020),
+        lastDate: DateTime(2100),
+        initialDate: value,
+      );
+      if (date == null || !context.mounted) return;
+      final time = await showTimePicker(
+        context: context,
+        initialTime: TimeOfDay.fromDateTime(value),
+      );
+      if (time != null) {
+        onChanged(
+          DateTime(date.year, date.month, date.day, time.hour, time.minute),
+        );
+      }
+    },
+    borderRadius: BorderRadius.circular(4),
+    child: InputDecorator(
+      decoration: InputDecoration(
+        labelText: label,
+        border: const OutlineInputBorder(),
+      ),
+      child: Text(
+        '${formatDate(value)} ${value.hour.toString().padLeft(2, '0')}:${value.minute.toString().padLeft(2, '0')}',
+      ),
+    ),
+  );
+}

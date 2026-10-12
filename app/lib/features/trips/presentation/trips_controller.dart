@@ -51,6 +51,8 @@ final tripsControllerProvider = NotifierProvider<TripsController, TripsState>(
 class TripsController extends Notifier<TripsState> {
   late TripsRepository repository;
 
+  DateTime get selectedDate => state.selectedDate;
+
   @override
   TripsState build() {
     repository = ref.read(tripsRepositoryProvider);

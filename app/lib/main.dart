@@ -6,6 +6,7 @@ import 'features/trips/domain/day_summary.dart';
 import 'features/trips/domain/trips_repository.dart';
 import 'features/trips/presentation/trips_controller.dart';
 import 'features/trips/presentation/widgets/day_switcher.dart';
+import 'features/trips/presentation/widgets/add_trip_sheet.dart';
 import 'features/trips/presentation/widgets/receipt_card.dart';
 
 class MyApp extends StatelessWidget {
@@ -81,19 +82,31 @@ class TripsHomePage extends ConsumerWidget {
         ),
       ),
       floatingActionButton: FloatingActionButton.extended(
-        onPressed: () => _showAddTripMessage(context),
+        onPressed: () => _openAddTripSheet(context, controller),
         icon: const Icon(Icons.add),
         label: const Text('Добавить поездку'),
       ),
     );
   }
 
-  void _showAddTripMessage(BuildContext context) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Форма добавления поездки будет доступна здесь'),
+  Future<void> _openAddTripSheet(
+    BuildContext context,
+    TripsController controller,
+  ) async {
+    final saved = await showModalBottomSheet<bool>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: const Color(0xFFFFF8E1),
+      builder: (_) => AddTripSheet(
+        selectedDate: controller.selectedDate,
+        onSave: controller.addTrip,
       ),
     );
+    if (saved == true && context.mounted) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Поездка добавлена')));
+    }
   }
 }
 
