@@ -1,5 +1,6 @@
 import json
 import os
+import shutil
 import tempfile
 from datetime import date
 from pathlib import Path
@@ -15,10 +16,24 @@ class JsonTripRepository(TripRepository):
     _locks_guard = RLock()
 
     def __init__(self, path: str | Path | None = None) -> None:
-        configured_path = path or os.getenv("TRIPS_FILE", "data/trips.json")
+        configured_path = path or os.getenv("TRIPS_FILE")
+        if configured_path is None:
+            configured_path = Path(__file__).resolve().parents[1] / "data" / "trips.json"
         self.path = Path(configured_path).resolve()
+        self._seed_if_missing = path is None
         with self._locks_guard:
             self._lock = self._locks.setdefault(self.path, RLock())
+        if self._seed_if_missing:
+            self._initialize_storage()
+
+    def _initialize_storage(self) -> None:
+        if self.path.exists():
+            return
+        seed_path = Path(__file__).resolve().parents[1] / "data" / "seed.json"
+        with self._lock:
+            if not self.path.exists():
+                self.path.parent.mkdir(parents=True, exist_ok=True)
+                shutil.copyfile(seed_path, self.path)
 
     def add(self, trip: Trip) -> Trip:
         stored_trip, _ = self.add_if_absent(trip)
