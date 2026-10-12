@@ -9,6 +9,10 @@ import 'features/trips/presentation/widgets/day_switcher.dart';
 import 'features/trips/presentation/widgets/add_trip_sheet.dart';
 import 'features/trips/presentation/widgets/receipt_card.dart';
 
+void main() {
+  runApp(const ProviderScope(child: MyApp()));
+}
+
 class MyApp extends StatelessWidget {
   const MyApp({this.repository, super.key});
 
