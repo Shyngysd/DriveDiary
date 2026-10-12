@@ -3,6 +3,7 @@ import 'package:uuid/uuid.dart';
 
 import '../../../../core/format/formatters.dart';
 import '../../domain/trip.dart';
+import '../../domain/trip_draft.dart';
 
 class AddTripSheet extends StatefulWidget {
   const AddTripSheet({
@@ -109,13 +110,7 @@ class _AddTripSheetState extends State<AddTripSheet> {
                   suffixText: '₸',
                   border: OutlineInputBorder(),
                 ),
-                validator: (value) {
-                  final amount = int.tryParse(value ?? '');
-                  if (amount == null || amount <= 0) {
-                    return 'Сумма должна быть больше нуля';
-                  }
-                  return null;
-                },
+                validator: (_) => _draft().validate()['amount'],
               ),
               const SizedBox(height: 12),
               SegmentedButton<PaymentMethod>(
@@ -144,17 +139,7 @@ class _AddTripSheetState extends State<AddTripSheet> {
                   suffixText: '₸',
                   border: OutlineInputBorder(),
                 ),
-                validator: (value) {
-                  final commission = int.tryParse(value ?? '');
-                  final amount = int.tryParse(_amountController.text);
-                  if (commission == null || commission < 0) {
-                    return 'Комиссия не может быть отрицательной';
-                  }
-                  if (amount != null && commission > amount) {
-                    return 'Комиссия не может быть больше суммы';
-                  }
-                  return null;
-                },
+                validator: (_) => _draft().validate()['commission'],
               ),
               if (_serverError != null)
                 Padding(
@@ -188,26 +173,17 @@ class _AddTripSheetState extends State<AddTripSheet> {
     if (_saving) return;
     FocusManager.instance.primaryFocus?.unfocus();
     setState(() => _serverError = null);
-    if (!_formKey.currentState!.validate()) return;
-    if (!_end.isAfter(_start)) {
-      setState(() => _serverError = 'Конец должен быть позже начала');
+    final errors = _draft().validate();
+    if (!_formKey.currentState!.validate() || errors.containsKey('end')) {
+      if (errors.containsKey('end')) {
+        setState(() => _serverError = errors['end']);
+      }
       return;
     }
 
-    final amount = int.parse(_amountController.text);
-    final commission = int.parse(_commissionController.text);
     setState(() => _saving = true);
     try {
-      await widget.onSave(
-        Trip(
-          id: _id,
-          start: TripTime(local: _start, offset: _offset),
-          end: TripTime(local: _end, offset: _offset),
-          amount: amount,
-          payment: _payment,
-          commission: commission,
-        ),
-      );
+      await widget.onSave(_draft().toTrip());
       if (mounted) Navigator.of(context).pop(true);
     } catch (error) {
       if (mounted) {
@@ -217,6 +193,15 @@ class _AddTripSheetState extends State<AddTripSheet> {
       if (mounted) setState(() => _saving = false);
     }
   }
+
+  TripDraft _draft() => TripDraft(
+    id: _id,
+    start: TripTime(local: _start, offset: _offset),
+    end: TripTime(local: _end, offset: _offset),
+    amount: int.tryParse(_amountController.text),
+    payment: _payment,
+    commission: int.tryParse(_commissionController.text),
+  );
 }
 
 class _DateTimeField extends StatelessWidget {
