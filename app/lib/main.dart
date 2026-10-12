@@ -135,7 +135,7 @@ class _ReceiptViewport extends StatelessWidget {
         child: ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: 420),
           child: Padding(
-            padding: const EdgeInsets.fromLTRB(16, 8, 16, 100),
+            padding: const EdgeInsets.fromLTRB(16, 8, 16, 112),
             child: GestureDetector(
               onHorizontalDragEnd: (details) {
                 final velocity = details.primaryVelocity ?? 0;

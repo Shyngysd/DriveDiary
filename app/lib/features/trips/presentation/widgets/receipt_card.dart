@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../../core/format/formatters.dart';
+import '../../../../core/theme/app_theme.dart';
 import '../../domain/day_summary.dart';
 import '../../domain/trip.dart';
 import 'dashed_divider.dart';
@@ -24,82 +25,85 @@ class ReceiptCard extends StatelessWidget {
   final bool loading;
 
   @override
-  Widget build(BuildContext context) => ClipPath(
-    clipper: TornEdgeClipper(),
-    child: DecoratedBox(
-      decoration: BoxDecoration(
-        color: const Color(0xFFFFF8E1),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.12),
-            blurRadius: 18,
-            offset: const Offset(0, 8),
-          ),
-        ],
-      ),
-      child: Padding(
-        padding: const EdgeInsets.fromLTRB(24, 24, 24, 30),
-        child: Column(
-          children: [
-            const Text(
-              'Дневник смен',
-              style: TextStyle(
-                color: Color(0xFF1E293B),
-                fontSize: 22,
-                fontWeight: FontWeight.w800,
-              ),
+  Widget build(BuildContext context) => Transform.rotate(
+    angle: -0.01745,
+    child: ClipPath(
+      clipper: TornEdgeClipper(),
+      child: DecoratedBox(
+        decoration: BoxDecoration(
+          color: AppTheme.receiptPaper,
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.12),
+              blurRadius: 18,
+              offset: const Offset(0, 8),
             ),
-            const SizedBox(height: 4),
-            Text(
-              formatDate(date),
-              style: const TextStyle(
-                color: Color(0xFF6B7280),
-                fontFamily: 'JetBrains Mono',
-                fontSize: 12,
+          ],
+        ),
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(24, 24, 24, 30),
+          child: Column(
+            children: [
+              const Text(
+                'Дневник смен',
+                style: TextStyle(
+                  color: AppTheme.ink,
+                  fontSize: 22,
+                  fontWeight: FontWeight.w800,
+                ),
               ),
-            ),
-            const SizedBox(height: 20),
-            if (loading)
-              const _SkeletonRows()
-            else if (trips.isEmpty)
-              const Padding(
-                padding: EdgeInsets.symmetric(vertical: 20),
-                child: Text(
-                  'Поездок нет',
-                  style: TextStyle(
-                    color: Color(0xFF6B7280),
-                    fontFamily: 'JetBrains Mono',
+              const SizedBox(height: 4),
+              Text(
+                formatDate(date),
+                style: const TextStyle(
+                  color: AppTheme.secondaryInk,
+                  fontFamily: 'JetBrains Mono',
+                  fontSize: 12,
+                ),
+              ),
+              const SizedBox(height: 20),
+              if (loading)
+                const _SkeletonRows()
+              else if (trips.isEmpty)
+                const Padding(
+                  padding: EdgeInsets.symmetric(vertical: 20),
+                  child: Text(
+                    'Поездок нет',
+                    style: TextStyle(
+                      color: AppTheme.secondaryInk,
+                      fontFamily: 'JetBrains Mono',
+                    ),
+                  ),
+                )
+              else
+                ...trips.map(
+                  (trip) => Padding(
+                    padding: const EdgeInsets.only(bottom: 8),
+                    child: ReceiptTripRow(trip: trip),
                   ),
                 ),
-              )
-            else
-              ...trips.map(
-                (trip) => Padding(
-                  padding: const EdgeInsets.only(bottom: 8),
-                  child: ReceiptTripRow(trip: trip),
-                ),
+              const DashedDivider(),
+              ReceiptSummaryRow(
+                label: 'Поездок',
+                value: summary.tripsCount.toString(),
               ),
-            const DashedDivider(),
-            ReceiptSummaryRow(
-              label: 'Поездок',
-              value: summary.tripsCount.toString(),
-            ),
-            ReceiptSummaryRow(
-              label: 'Выручка',
-              value: formatMoney(summary.revenue),
-            ),
-            ReceiptSummaryRow(
-              label: 'Комиссия',
-              value: formatMoney(-summary.commission),
-            ),
-            ReceiptSummaryRow(
-              label: 'Наличные / карта',
-              value:
-                  '${formatMoney(summary.cashTotal)} / ${formatMoney(summary.cardTotal)}',
-            ),
-            const DashedDivider(),
-            TotalRow(amount: summary.net),
-          ],
+              ReceiptSummaryRow(
+                label: 'Выручка',
+                value: formatMoney(summary.revenue),
+              ),
+              ReceiptSummaryRow(
+                label: 'Комиссия',
+                value: formatMoney(-summary.commission),
+              ),
+              ReceiptSummaryRow(
+                label: 'Наличные / карта',
+                value:
+                    '${formatMoney(summary.cashTotal)} / ${formatMoney(summary.cardTotal)}',
+              ),
+              const DashedDivider(),
+              TotalRow(amount: summary.net),
+            ],
+          ),
         ),
       ),
     ),
@@ -123,7 +127,7 @@ class _SkeletonRows extends StatelessWidget {
             height: 12,
             width: index.isEven ? 180 : 100,
             decoration: BoxDecoration(
-              color: const Color(0xFFE8DDBD),
+              color: AppTheme.receiptMutedInk.withValues(alpha: 0.18),
               borderRadius: BorderRadius.circular(4),
             ),
           ),
