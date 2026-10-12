@@ -1,30 +1,58 @@
-// This is a basic Flutter widget test.
-//
-// To perform an interaction with a widget in your test, use the WidgetTester
-// utility in the flutter_test package. For example, you can send tap and scroll
-// gestures. You can also use WidgetTester to find child widgets in the widget
-// tree, read text, and verify that the values of widget properties are correct.
-
-import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import 'package:app/features/trips/domain/day_summary.dart';
+import 'package:app/features/trips/domain/trip.dart';
+import 'package:app/features/trips/domain/trips_repository.dart';
 import 'package:app/main.dart';
 
+class _ReferenceRepository implements TripsRepository {
+  final _date = DateTime(2026, 10, 1);
+  final _trips = [
+    Trip(
+      id: 't1',
+      start: TripTime.parse('2026-10-01T08:10:00+05:00'),
+      end: TripTime.parse('2026-10-01T08:32:00+05:00'),
+      amount: 1500,
+      payment: PaymentMethod.cash,
+      commission: 225,
+    ),
+    Trip(
+      id: 't2',
+      start: TripTime.parse('2026-10-01T09:00:00+05:00'),
+      end: TripTime.parse('2026-10-01T09:25:00+05:00'),
+      amount: 2400,
+      payment: PaymentMethod.card,
+      commission: 360,
+    ),
+  ];
+
+  @override
+  Future<Trip> addTrip(Trip trip) async => trip;
+
+  @override
+  Future<DaySummary> getSummary(DateTime date) async => const DaySummary(
+    tripsCount: 2,
+    revenue: 3900,
+    commission: 585,
+    net: 3315,
+    cashTotal: 1500,
+    cardTotal: 2400,
+  );
+
+  @override
+  Future<List<DateTime>> listDays() async => [_date];
+
+  @override
+  Future<List<Trip>> listTrips(DateTime date) async => _trips;
+}
+
 void main() {
-  testWidgets('Counter increments smoke test', (WidgetTester tester) async {
-    // Build our app and trigger a frame.
-    await tester.pumpWidget(const MyApp());
+  testWidgets('reference receipt displays totals', (tester) async {
+    await tester.pumpWidget(MyApp(repository: _ReferenceRepository()));
+    await tester.pumpAndSettle();
 
-    // Verify that our counter starts at 0.
-    expect(find.text('0'), findsOneWidget);
-    expect(find.text('1'), findsNothing);
-
-    // Tap the '+' icon and trigger a frame.
-    await tester.tap(find.byIcon(Icons.add));
-    await tester.pump();
-
-    // Verify that our counter has incremented.
-    expect(find.text('0'), findsNothing);
-    expect(find.text('1'), findsOneWidget);
+    expect(find.text('3 315 ₸'), findsOneWidget);
+    expect(find.text('1 500 ₸ / 2 400 ₸'), findsOneWidget);
+    expect(find.text('−585 ₸'), findsOneWidget);
   });
 }

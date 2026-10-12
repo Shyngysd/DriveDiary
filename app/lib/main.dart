@@ -1,122 +1,178 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-void main() {
-  runApp(const MyApp());
-}
+import 'core/theme/app_theme.dart';
+import 'features/trips/domain/day_summary.dart';
+import 'features/trips/domain/trips_repository.dart';
+import 'features/trips/presentation/trips_controller.dart';
+import 'features/trips/presentation/widgets/day_switcher.dart';
+import 'features/trips/presentation/widgets/receipt_card.dart';
 
 class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+  const MyApp({this.repository, super.key});
 
-  // This widget is the root of your application.
+  final TripsRepository? repository;
+
   @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Flutter Demo',
-      theme: ThemeData(
-        // This is the theme of your application.
-        //
-        // TRY THIS: Try running your application with "flutter run". You'll see
-        // the application has a purple toolbar. Then, without quitting the app,
-        // try changing the seedColor in the colorScheme below to Colors.green
-        // and then invoke "hot reload" (save your changes or press the "hot
-        // reload" button in a Flutter-supported IDE, or press "r" if you used
-        // the command line to start the app).
-        //
-        // Notice that the counter didn't reset back to zero; the application
-        // state is not lost during the reload. To reset the state, use hot
-        // restart instead.
-        //
-        // This works for code too, not just values: Most code changes can be
-        // tested with just a hot reload.
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
-      ),
-      home: const MyHomePage(title: 'Flutter Demo Home Page'),
-    );
-  }
+  Widget build(BuildContext context) => ProviderScope(
+    overrides: [
+      if (repository != null)
+        tripsRepositoryProvider.overrideWithValue(repository!),
+    ],
+    child: MaterialApp(
+      title: 'Дневник смен',
+      theme: AppTheme.light(),
+      darkTheme: AppTheme.dark(),
+      home: const TripsHomePage(),
+    ),
+  );
 }
 
-class MyHomePage extends StatefulWidget {
-  const MyHomePage({super.key, required this.title});
+class TripsHomePage extends ConsumerWidget {
+  const TripsHomePage({super.key});
 
-  // This widget is the home page of your application. It is stateful, meaning
-  // that it has a State object (defined below) that contains fields that affect
-  // how it looks.
-
-  // This class is the configuration for the state. It holds the values (in this
-  // case the title) provided by the parent (in this case the App widget) and
-  // used by the build method of the State. Fields in a Widget subclass are
-  // always marked "final".
-
-  final String title;
+  static const _emptySummary = DaySummary(
+    tripsCount: 0,
+    revenue: 0,
+    commission: 0,
+    net: 0,
+    cashTotal: 0,
+    cardTotal: 0,
+  );
 
   @override
-  State<MyHomePage> createState() => _MyHomePageState();
-}
+  Widget build(BuildContext context, WidgetRef ref) {
+    final state = ref.watch(tripsControllerProvider);
+    final controller = ref.read(tripsControllerProvider.notifier);
+    final summary = state.summary ?? _emptySummary;
 
-class _MyHomePageState extends State<MyHomePage> {
-  int _counter = 0;
-
-  void _incrementCounter() {
-    setState(() {
-      // This call to setState tells the Flutter framework that something has
-      // changed in this State, which causes it to rerun the build method below
-      // so that the display can reflect the updated values. If we changed
-      // _counter without calling setState(), then the build method would not be
-      // called again, and so nothing would appear to happen.
-      _counter++;
-    });
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    // This method is rerun every time setState is called, for instance as done
-    // by the _incrementCounter method above.
-    //
-    // The Flutter framework has been optimized to make rerunning build methods
-    // fast, so that you can just rebuild anything that needs updating rather
-    // than having to individually change instances of widgets.
     return Scaffold(
       appBar: AppBar(
-        // TRY THIS: Try changing the color here to a specific color (to
-        // Colors.amber, perhaps?) and trigger a hot reload to see the AppBar
-        // change color while the other colors stay the same.
-        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-        // Here we take the value from the MyHomePage object that was created by
-        // the App.build method, and use it to set our appbar title.
-        title: Text(widget.title),
+        title: const Text('Дневник смен'),
+        centerTitle: true,
+        backgroundColor: Colors.transparent,
       ),
-      body: Center(
-        // Center is a layout widget. It takes a single child and positions it
-        // in the middle of the parent.
+      body: SafeArea(
         child: Column(
-          // Column is also a layout widget. It takes a list of children and
-          // arranges them vertically. By default, it sizes itself to fit its
-          // children horizontally, and tries to be as tall as its parent.
-          //
-          // Column has various properties to control how it sizes itself and
-          // how it positions its children. Here we use mainAxisAlignment to
-          // center the children vertically; the main axis here is the vertical
-          // axis because Columns are vertical (the cross axis would be
-          // horizontal).
-          //
-          // TRY THIS: Invoke "debug painting" (choose the "Toggle Debug Paint"
-          // action in the IDE, or press "p" in the console), to see the
-          // wireframe for each widget.
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            const Text('You have pushed the button this many times:'),
-            Text(
-              '$_counter',
-              style: Theme.of(context).textTheme.headlineMedium,
+          children: [
+            DaySwitcher(
+              date: state.selectedDate,
+              onPrevious: controller.goToPreviousDay,
+              onNext: controller.goToNextDay,
+              onSelect: controller.selectDate,
+            ),
+            Expanded(
+              child: RefreshIndicator(
+                onRefresh: controller.loadInitial,
+                child: state.status == TripsStatus.error
+                    ? _ErrorContent(
+                        onRetry: controller.loadInitial,
+                        error: state.error,
+                      )
+                    : _ReceiptViewport(
+                        state: state,
+                        summary: summary,
+                        onSwipeLeft: controller.goToNextDay,
+                        onSwipeRight: controller.goToPreviousDay,
+                      ),
+              ),
             ),
           ],
         ),
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _incrementCounter,
-        tooltip: 'Increment',
-        child: const Icon(Icons.add),
-      ), // This trailing comma makes auto-formatting nicer for build methods.
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: () => _showAddTripMessage(context),
+        icon: const Icon(Icons.add),
+        label: const Text('Добавить поездку'),
+      ),
     );
   }
+
+  void _showAddTripMessage(BuildContext context) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Форма добавления поездки будет доступна здесь'),
+      ),
+    );
+  }
+}
+
+class _ReceiptViewport extends StatelessWidget {
+  const _ReceiptViewport({
+    required this.state,
+    required this.summary,
+    required this.onSwipeLeft,
+    required this.onSwipeRight,
+  });
+
+  final TripsState state;
+  final DaySummary summary;
+  final VoidCallback onSwipeLeft;
+  final VoidCallback onSwipeRight;
+
+  @override
+  Widget build(BuildContext context) => LayoutBuilder(
+    builder: (context, constraints) => SingleChildScrollView(
+      physics: const AlwaysScrollableScrollPhysics(),
+      child: Center(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 420),
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(16, 8, 16, 100),
+            child: GestureDetector(
+              onHorizontalDragEnd: (details) {
+                final velocity = details.primaryVelocity ?? 0;
+                if (velocity < -100) onSwipeLeft();
+                if (velocity > 100) onSwipeRight();
+              },
+              child: AnimatedSwitcher(
+                duration: const Duration(milliseconds: 180),
+                transitionBuilder: (child, animation) =>
+                    FadeTransition(opacity: animation, child: child),
+                child: ReceiptCard(
+                  key: ValueKey(state.selectedDate),
+                  date: state.selectedDate,
+                  trips: state.trips,
+                  summary: summary,
+                  loading: state.status == TripsStatus.loading,
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    ),
+  );
+}
+
+class _ErrorContent extends StatelessWidget {
+  const _ErrorContent({required this.onRetry, required this.error});
+
+  final VoidCallback onRetry;
+  final Object? error;
+
+  @override
+  Widget build(BuildContext context) => ListView(
+    physics: const AlwaysScrollableScrollPhysics(),
+    padding: const EdgeInsets.all(32),
+    children: [
+      const SizedBox(height: 80),
+      const Icon(Icons.cloud_off, size: 48),
+      const SizedBox(height: 16),
+      Text(
+        'Не удалось загрузить данные',
+        textAlign: TextAlign.center,
+        style: Theme.of(context).textTheme.titleMedium,
+      ),
+      if (error != null)
+        Padding(
+          padding: const EdgeInsets.only(top: 8),
+          child: Text(error.toString(), textAlign: TextAlign.center),
+        ),
+      const SizedBox(height: 16),
+      Center(
+        child: FilledButton(onPressed: onRetry, child: const Text('Повторить')),
+      ),
+    ],
+  );
 }
