@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../../../../core/theme/app_theme.dart';
+
 class ReceiptSummaryRow extends StatelessWidget {
   const ReceiptSummaryRow({
     required this.label,
@@ -19,7 +21,7 @@ class ReceiptSummaryRow extends StatelessWidget {
           child: Text(
             label,
             style: const TextStyle(
-              color: Color(0xFF6B7280),
+              color: AppTheme.secondaryInk,
               fontFamily: 'JetBrains Mono',
               fontSize: 12,
             ),
@@ -27,7 +29,11 @@ class ReceiptSummaryRow extends StatelessWidget {
         ),
         Text(
           value,
-          style: const TextStyle(fontFamily: 'JetBrains Mono', fontSize: 12),
+          style: const TextStyle(
+            color: AppTheme.ink,
+            fontFamily: 'JetBrains Mono',
+            fontSize: 12,
+          ),
         ),
       ],
     ),

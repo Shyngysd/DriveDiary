@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../../core/format/formatters.dart';
+import '../../../../core/theme/app_theme.dart';
 
 class TotalRow extends StatelessWidget {
   const TotalRow({required this.amount, super.key});
@@ -17,7 +18,7 @@ class TotalRow extends StatelessWidget {
           child: Text(
             'На руки',
             style: TextStyle(
-              color: Color(0xFF6B7280),
+              color: AppTheme.secondaryInk,
               fontFamily: 'JetBrains Mono',
               fontSize: 12,
             ),
@@ -26,7 +27,7 @@ class TotalRow extends StatelessWidget {
         Text(
           formatMoney(amount),
           style: const TextStyle(
-            color: Color(0xFF1E293B),
+            color: AppTheme.ink,
             fontFamily: 'Manrope',
             fontSize: 40,
             fontWeight: FontWeight.w800,

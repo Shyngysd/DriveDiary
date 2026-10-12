@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../../core/format/formatters.dart';
+import '../../../../core/theme/app_theme.dart';
 import '../../domain/trip.dart';
 
 class ReceiptTripRow extends StatelessWidget {
@@ -19,6 +20,7 @@ class ReceiptTripRow extends StatelessWidget {
             child: Text(
               '${formatTimeRange(trip)} $method',
               style: const TextStyle(
+                color: AppTheme.ink,
                 fontFamily: 'JetBrains Mono',
                 fontSize: 12,
               ),
@@ -26,7 +28,11 @@ class ReceiptTripRow extends StatelessWidget {
           ),
           Text(
             formatMoney(trip.amount),
-            style: const TextStyle(fontFamily: 'JetBrains Mono', fontSize: 12),
+            style: const TextStyle(
+              color: AppTheme.ink,
+              fontFamily: 'JetBrains Mono',
+              fontSize: 12,
+            ),
           ),
         ],
       ),

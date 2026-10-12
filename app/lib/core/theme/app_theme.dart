@@ -5,6 +5,7 @@ class AppTheme {
   static const receiptPaper = Color(0xFFFFF8E1);
   static const ink = Color(0xFF1E293B);
   static const secondaryInk = Color(0xFF6B7280);
+  static const receiptMutedInk = Color(0xFF526174);
 
   static ThemeData light() => ThemeData(
     useMaterial3: true,
