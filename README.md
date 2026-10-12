@@ -179,15 +179,10 @@ Golden-тесты запускаются локально командой `flut
 
 ### Проверено в этом запуске
 
-- `python -m pytest` в `server/`: `33 passed, 1 warning` за `1.02s`.
-- `flutter analyze` в `app/`: `No issues found!`.
-- `flutter test` в `app/`: `All tests passed!` (`20` тестов).
-- `git log`, `git diff --check` и `git status` проверены; после текущих правок изменены только README и AI_LOG.
-- Поиск `Docker`, `docker`, `Dockerfile` по репозиторию ничего не нашёл.
-- Наличие `docs/receipt-light.png` и `docs/receipt-dark.png` проверено: файлы отсутствуют.
-- Просмотрен существующий `docs/receipt-screenshot.png`; итоговая сумма на нём не видна полностью.
-- `app/test/goldens/receipt_light.png` просмотрен: итог `3 315 ₸` виден.
-- `app/test/goldens/receipt_dark.png` просмотрен; это тестовый golden-файл, а не файл из `docs/`.
+- `Get-ChildItem docs -Force`: найдены только `docs/receipt-screenshot.png`; `docs/receipt-light.png` и `docs/receipt-dark.png` отсутствуют.
+- `git log --all -- docs/receipt-light.png docs/receipt-dark.png docs/receipt-screenshot.png`: в истории есть `docs/receipt-screenshot.png`, отдельные light/dark-файлы не добавлялись.
+- `git show e49e90d --stat`: подтверждено добавление golden-тегов, `app/dart_test.yaml`, обычного widget-теста и исключения golden из CI.
+- `git status --short`: до текущих правок рабочее дерево было чистым.
 
 ## 4. Архитектура
 
