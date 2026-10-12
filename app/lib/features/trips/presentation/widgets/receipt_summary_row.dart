@@ -27,14 +27,7 @@ class ReceiptSummaryRow extends StatelessWidget {
             ),
           ),
         ),
-        Text(
-          value,
-          style: const TextStyle(
-            color: AppTheme.ink,
-            fontFamily: 'JetBrains Mono',
-            fontSize: 12,
-          ),
-        ),
+        Text(value, style: AppTheme.receiptMoney.copyWith(color: AppTheme.ink)),
       ],
     ),
   );

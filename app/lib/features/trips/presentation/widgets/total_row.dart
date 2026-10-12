@@ -26,12 +26,7 @@ class TotalRow extends StatelessWidget {
         ),
         Text(
           formatMoney(amount),
-          style: const TextStyle(
-            color: AppTheme.ink,
-            fontFamily: 'Manrope',
-            fontSize: 40,
-            fontWeight: FontWeight.w800,
-          ),
+          style: AppTheme.receiptMoneyLarge.copyWith(color: AppTheme.ink),
         ),
       ],
     ),

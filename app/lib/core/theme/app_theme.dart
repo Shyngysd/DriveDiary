@@ -1,6 +1,19 @@
 import 'package:flutter/material.dart';
 
 class AppTheme {
+  static const moneyFallback = <String>['Noto Sans'];
+  static const receiptMoney = TextStyle(
+    fontFamily: 'JetBrains Mono',
+    fontFamilyFallback: moneyFallback,
+    fontSize: 12,
+  );
+  static const receiptMoneyLarge = TextStyle(
+    fontFamily: 'Manrope',
+    fontFamilyFallback: moneyFallback,
+    fontSize: 40,
+    fontWeight: FontWeight.w800,
+  );
+
   static const pageBackground = Color(0xFFEEF1F6);
   static const receiptPaper = Color(0xFFFFF8E1);
   static const ink = Color(0xFF1E293B);

@@ -58,15 +58,19 @@ flutter:
   uses-material-design: true
   assets:
     - assets/fonts/JetBrainsMono-Regular.ttf
-    - assets/fonts/Manrope-ExtraBold.ttf
+    - assets/fonts/Manrope-Variable.ttf
+    - assets/fonts/NotoSans-Regular.ttf
   fonts:
     - family: JetBrains Mono
       fonts:
         - asset: assets/fonts/JetBrainsMono-Regular.ttf
     - family: Manrope
       fonts:
-        - asset: assets/fonts/Manrope-ExtraBold.ttf
+        - asset: assets/fonts/Manrope-Variable.ttf
           weight: 800
+    - family: Noto Sans
+      fonts:
+        - asset: assets/fonts/NotoSans-Regular.ttf
 
   # To add assets to your application, add an assets section, like this:
   # assets:

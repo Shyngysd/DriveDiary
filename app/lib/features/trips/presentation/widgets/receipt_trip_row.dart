@@ -28,11 +28,7 @@ class ReceiptTripRow extends StatelessWidget {
           ),
           Text(
             formatMoney(trip.amount),
-            style: const TextStyle(
-              color: AppTheme.ink,
-              fontFamily: 'JetBrains Mono',
-              fontSize: 12,
-            ),
+            style: AppTheme.receiptMoney.copyWith(color: AppTheme.ink),
           ),
         ],
       ),
