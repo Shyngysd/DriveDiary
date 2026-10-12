@@ -11,7 +11,7 @@ DriveDiary — монорепозиторий дневника смен води
 - API для поездок, сводки дня, списка дат и health-check.
 - Flutter-клиент на Dio и Riverpod.
 - Главный экран в стиле чека: список поездок, сводка, переключение дней, свайп, pull-to-refresh, skeleton, ошибка и форма добавления поездки.
-- Локальные тесты сервера и приложения, CI для обеих частей.
+- Локальные тесты сервера и приложения, CI с jobs `server`, `app` и `android`; web и debug APK публикуются как артефакты.
 
 ### Скриншот чека
 
@@ -42,14 +42,19 @@ DriveDiary — монорепозиторий дневника смен води
 | `GET /summary` | `server/api/trips.py` | `test_list_trips_is_sorted_and_summary_is_returned` |
 | `GET /days` по возрастанию | `server/api/trips.py`, `server/repositories/json_repo.py` | `test_days_are_sorted_and_empty_day_is_valid` |
 | Единый формат ошибок `{"error": ...}` | `server/api/errors.py` | `test_validation_and_query_date_errors_use_error_envelope` |
+| Seed-данные и создание рабочего файла | `server/data/seed.json`, `server/repositories/json_repo.py` | `test_seed_reference_trips_and_summary`, `test_seed_days_and_midnight_trip` |
+| Ошибки сервера и безопасный 500 | `server/api/errors.py` | `test_invalid_date_has_dedicated_error_code`, `test_validation_error_contains_field_details`, `test_unhandled_exception_has_safe_500_envelope`, `test_corrupt_storage_fails_at_startup_with_path` |
 | CORS для разработки | `server/main.py` | `test_health_and_cors` |
 | Клиентский API-слой и typed exceptions | `app/lib/features/trips/data/` | `trips_data_test.dart`, controller/widget tests |
 | Состояния loading/data/error и выбор дня | `app/.../presentation/trips_controller.dart` | `trips_controller_test.dart` |
 | Параллельная загрузка списка и сводки | `TripsController._loadDate` | `trips_controller_test.dart` |
 | Чек и его компоненты | `app/.../presentation/widgets/` | `widget_test.dart` |
 | Форматирование денег и времени | `app/lib/core/format/formatters.dart` | `formatters_test.dart` |
+| Глифы валюты в локальном fallback-шрифте | `app/assets/fonts/`, `app/lib/core/theme/app_theme.dart` | `money styles use the bundled glyph fallback` |
+| Светлая и тёмная версия чека | `app/.../presentation/widgets/receipt_card.dart` | `receipt card light golden`, `receipt card dark golden keeps paper and ink colors` |
 | Bottom sheet добавления поездки | `add_trip_sheet.dart`, `domain/trip_draft.dart` | `add_trip_sheet_test.dart`, `trip_draft_test.dart` |
 | Повторное нажатие «Сохранить» не создаёт второй запрос | `add_trip_sheet.dart` | `double tapping save sends one request` |
+| Защита состояния от устаревших ответов и повторная загрузка | `trips_controller.dart` | `stale date responses cannot replace the latest selection`, `loadInitial can be retried after GET /days fails` |
 
 ## 3. Быстрый старт
 
@@ -59,13 +64,13 @@ DriveDiary — монорепозиторий дневника смен води
 - Flutter 3 / Dart 3.
 - Windows, macOS или Linux для локального запуска.
 
-### Сервер
+### Сервер — Windows PowerShell
 
 Из корня репозитория:
 
 ```powershell
 cd server
-python -m pip install -r requirements.txt
+python -m pip install -r requirements-dev.txt
 uvicorn main:app --reload
 ```
 
@@ -75,6 +80,20 @@ uvicorn main:app --reload
 
 ```powershell
 Invoke-WebRequest http://127.0.0.1:8000/health
+```
+
+### Сервер — bash
+
+```bash
+cd server
+python3 -m pip install -r requirements-dev.txt
+uvicorn main:app --reload
+```
+
+Проверка:
+
+```bash
+curl http://127.0.0.1:8000/health
 ```
 
 ### Flutter Web
@@ -136,7 +155,37 @@ flutter test
 flutter build web
 ```
 
-Проверено на текущей структуре репозитория: серверные тесты проходят, `flutter analyze`, `flutter test` и `flutter build web` проходят.
+### POST `/trips` из PowerShell
+
+```powershell
+Invoke-RestMethod -Method Post http://127.0.0.1:8000/trips `
+  -ContentType 'application/json' `
+  -Body '{"id":"cli-1","start":"2026-10-01T08:10:00+05:00","end":"2026-10-01T08:32:00+05:00","amount":1500,"payment":"cash","commission":225}'
+```
+
+### POST `/trips` из bash
+
+```bash
+curl -X POST http://127.0.0.1:8000/trips \
+  -H 'Content-Type: application/json' \
+  -d '{"id":"cli-1","start":"2026-10-01T08:10:00+05:00","end":"2026-10-01T08:32:00+05:00","amount":1500,"payment":"cash","commission":225}'
+```
+
+### CI
+
+Workflow запускается на `push` и `pull_request` и содержит jobs `server`, `app`, `android`. `server` запускает pytest на Python 3.12, `app` выполняет analyze/test/web build, `android` собирает debug APK. Jobs `app` и `android` публикуют соответственно web и APK как артефакты.
+
+### Проверено в этом запуске
+
+- `python -m pytest` в `server/`: `33 passed, 1 warning` за `1.02s`.
+- `flutter analyze` в `app/`: `No issues found!`.
+- `flutter test` в `app/`: `All tests passed!` (`20` тестов).
+- `git log`, `git diff --check` и `git status` проверены; после текущих правок изменены только README и AI_LOG.
+- Поиск `Docker`, `docker`, `Dockerfile` по репозиторию ничего не нашёл.
+- Наличие `docs/receipt-light.png` и `docs/receipt-dark.png` проверено: файлы отсутствуют.
+- Просмотрен существующий `docs/receipt-screenshot.png`; итоговая сумма на нём не видна полностью.
+- `app/test/goldens/receipt_light.png` просмотрен: итог `3 315 ₸` виден.
+- `app/test/goldens/receipt_dark.png` просмотрен; это тестовый golden-файл, а не файл из `docs/`.
 
 ## 4. Архитектура
 
@@ -260,9 +309,9 @@ curl http://localhost:8000/days
 ### Добавление поездки
 
 ```bash
-curl -X POST http://localhost:8000/trips `
-  -H "Content-Type: application/json" `
-  -d '{\"id\":\"cli-1\",\"start\":\"2026-10-01T08:10:00+05:00\",\"end\":\"2026-10-01T08:32:00+05:00\",\"amount\":1500,\"payment\":\"cash\",\"commission\":225}'
+curl -X POST http://localhost:8000/trips \
+  -H 'Content-Type: application/json' \
+  -d '{"id":"cli-1","start":"2026-10-01T08:10:00+05:00","end":"2026-10-01T08:32:00+05:00","amount":1500,"payment":"cash","commission":225}'
 ```
 
 Коды ответа:
@@ -283,24 +332,11 @@ curl -X POST http://localhost:8000/trips `
 }
 ```
 
-## 7. Ограничения и дальнейшие улучшения
+## 7. Что осознанно не сделано
 
-Текущие ограничения:
-
-- JSON-файл подходит для локального запуска и небольших объёмов, но не для нескольких процессов или распределённого сервера.
-- Нет авторизации и разделения данных пользователей.
-- Форма добавления поездки не является отдельным многоэкранным сценарием.
-- Нет редактирования и удаления поездок.
-- Даты и смещение выбираются средствами платформы; отдельной настройки часового пояса поездки нет.
-- CI собирает web, но не запускает Android-инструментальные тесты.
-
-Дальше можно улучшить:
-
-- заменить JSON на транзакционную БД с уникальным индексом по `id`;
-- добавить миграции, авторизацию и разделение данных;
-- добавить редактирование/удаление с подтверждением;
-- добавить статистику за неделю и экспорт;
-- добавить визуальные golden-тесты чека и Android CI.
+- Редактирование и удаление поездок.
+- Авторизация.
+- База данных вместо JSON.
 
 ## 8. Как использовался ИИ
 
