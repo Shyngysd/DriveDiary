@@ -97,6 +97,29 @@ flutter pub get
 flutter run -d <android-device> --dart-define=API_URL=http://10.0.2.2:8000
 ```
 
+HTTP-разрешение для такого адреса включено только в debug-манифесте. Для release APK используйте HTTPS:
+
+```powershell
+flutter build apk --release --dart-define=API_URL=https://api.example.com
+```
+
+### Android-телефон по USB
+
+Подключите телефон с включённой отладкой по USB и пробросьте порт сервера:
+
+```powershell
+adb reverse tcp:8000 tcp:8000
+flutter run -d <android-device> --dart-define=API_URL=http://127.0.0.1:8000
+```
+
+### Если чёрный экран на эмуляторе
+
+В настройках эмулятора попробуйте сменить `Graphics` на `Software` или `Hardware`, затем выполните cold boot. Для запуска Flutter без Impeller:
+
+```powershell
+flutter run -d <android-device> --no-enable-impeller --dart-define=API_URL=http://10.0.2.2:8000
+```
+
 Для web и desktop используйте `http://localhost:8000`.
 
 ### Тесты и сборка
