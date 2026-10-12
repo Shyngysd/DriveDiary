@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
 
-import '../../../../core/format/formatters.dart';
-
 class ReceiptSummaryRow extends StatelessWidget {
   const ReceiptSummaryRow({
     required this.label,
@@ -35,5 +33,3 @@ class ReceiptSummaryRow extends StatelessWidget {
     ),
   );
 }
-
-String moneySummary(int value) => formatMoney(value);
