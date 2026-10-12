@@ -175,6 +175,8 @@ curl -X POST http://127.0.0.1:8000/trips \
 
 Workflow запускается на `push` и `pull_request` и содержит jobs `server`, `app`, `android`. `server` запускает pytest на Python 3.12, `app` выполняет analyze/test/web build, `android` собирает debug APK. Jobs `app` и `android` публикуют соответственно web и APK как артефакты.
 
+Golden-тесты запускаются локально командой `flutter test --tags golden`, а в CI исключены из-за различий рендеринга Windows/Linux.
+
 ### Проверено в этом запуске
 
 - `python -m pytest` в `server/`: `33 passed, 1 warning` за `1.02s`.
