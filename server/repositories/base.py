@@ -14,6 +14,10 @@ class TripRepository(ABC):
         """Add a trip or return the identical existing trip."""
 
     @abstractmethod
+    def add_if_absent(self, trip: Trip) -> tuple[Trip, bool]:
+        """Atomically add a trip and report whether it was created."""
+
+    @abstractmethod
     def get_by_id(self, trip_id: str) -> Trip | None:
         ...
 

@@ -11,23 +11,31 @@ from services.day import local_date
 
 
 class JsonTripRepository(TripRepository):
+    _locks: dict[Path, RLock] = {}
+    _locks_guard = RLock()
+
     def __init__(self, path: str | Path | None = None) -> None:
         configured_path = path or os.getenv("TRIPS_FILE", "data/trips.json")
-        self.path = Path(configured_path)
-        self._lock = RLock()
+        self.path = Path(configured_path).resolve()
+        with self._locks_guard:
+            self._lock = self._locks.setdefault(self.path, RLock())
 
     def add(self, trip: Trip) -> Trip:
+        stored_trip, _ = self.add_if_absent(trip)
+        if stored_trip != trip:
+            raise DuplicateConflict(f"trip id already exists: {trip.id}")
+        return stored_trip
+
+    def add_if_absent(self, trip: Trip) -> tuple[Trip, bool]:
         with self._lock:
             trips = self._read()
             existing = next((item for item in trips if item.id == trip.id), None)
             if existing is not None:
-                if existing == trip:
-                    return existing
-                raise DuplicateConflict(f"trip id already exists: {trip.id}")
+                return existing, False
 
             trips.append(trip)
             self._write(trips)
-            return trip
+            return trip, True
 
     def get_by_id(self, trip_id: str) -> Trip | None:
         with self._lock:

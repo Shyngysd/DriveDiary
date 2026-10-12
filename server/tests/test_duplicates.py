@@ -39,16 +39,47 @@ def test_changed_trip_with_same_id_raises_conflict(tmp_path) -> None:
 
 
 def test_twenty_parallel_identical_adds_create_one_record(tmp_path) -> None:
-    repository = JsonTripRepository(tmp_path / "trips.json")
-    service = TripService(repository)
+    path = tmp_path / "trips.json"
+    services = [TripService(JsonTripRepository(path)) for _ in range(20)]
     trip = make_trip()
 
     with ThreadPoolExecutor(max_workers=20) as executor:
-        results = list(executor.map(service.add_trip, [trip] * 20))
+        results = list(
+            executor.map(
+                lambda service: service.add_trip_with_status(trip),
+                services,
+            )
+        )
 
-    assert results == [trip] * 20
-    assert repository.get_by_id(trip.id) == trip
-    assert len(repository.list_by_date(trip.start.date())) == 1
+    assert sum(created for _, created in results) == 1
+    assert sum(not created for _, created in results) == 19
+    assert JsonTripRepository(path).get_by_id(trip.id) == trip
+    assert len(JsonTripRepository(path).list_by_date(trip.start.date())) == 1
+
+
+def test_parallel_changed_data_raises_conflict(tmp_path) -> None:
+    path = tmp_path / "trips.json"
+    services = [TripService(JsonTripRepository(path)) for _ in range(20)]
+    trips = [make_trip(amount=1000 + index) for index in range(20)]
+
+    with ThreadPoolExecutor(max_workers=20) as executor:
+        results = list(
+            executor.map(
+                lambda item: _add_and_capture(item[0], item[1]),
+                zip(services, trips),
+            )
+        )
+
+    assert sum(result == "created" for result in results) == 1
+    assert sum(result == "conflict" for result in results) == 19
+
+
+def _add_and_capture(service: TripService, trip: Trip) -> str:
+    try:
+        _, created = service.add_trip_with_status(trip)
+        return "created" if created else "repeated"
+    except DuplicateConflict:
+        return "conflict"
 
 
 def test_repository_reload_preserves_data(tmp_path) -> None:
