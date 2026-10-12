@@ -1,3 +1,5 @@
+[![CI](https://github.com/Shyngysd/DriveDiary/actions/workflows/ci.yml/badge.svg)](https://github.com/Shyngysd/DriveDiary/actions/workflows/ci.yml)
+
 # DriveDiary
 
 DriveDiary — монорепозиторий дневника смен водителя: FastAPI-сервер с JSON-хранилищем и Flutter-приложение с экраном дневного чека.
