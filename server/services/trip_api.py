@@ -4,13 +4,17 @@ from datetime import date
 from models.trip import Trip
 
 
+class InvalidDateError(ValueError):
+    """Raised when an API date is not a valid YYYY-MM-DD value."""
+
+
 def parse_trip_date(value: str) -> date:
     if re.fullmatch(r"\d{4}-\d{2}-\d{2}", value) is None:
-        raise ValueError("date must be in YYYY-MM-DD format")
+        raise InvalidDateError("date must be in YYYY-MM-DD format")
     try:
         return date.fromisoformat(value)
     except ValueError as error:
-        raise ValueError("date must be in YYYY-MM-DD format") from error
+        raise InvalidDateError("date must be in YYYY-MM-DD format") from error
 
 
 def sort_trips_by_start(trips: list[Trip]) -> list[Trip]:

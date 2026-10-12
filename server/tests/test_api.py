@@ -85,11 +85,12 @@ def test_validation_and_query_date_errors_use_error_envelope(tmp_path) -> None:
 
     response = api.post("/trips", json=invalid)
     assert response.status_code == 422
-    assert set(response.json()["error"]) == {"code", "message"}
+    assert set(response.json()["error"]) == {"code", "message", "details"}
+    assert response.json()["error"]["details"]
 
     response = api.get("/trips?date=not-a-date")
     assert response.status_code == 422
-    assert response.json()["error"]["code"] == "invalid_request"
+    assert response.json()["error"]["code"] == "invalid_date"
 
 
 def test_health_and_cors(tmp_path) -> None:

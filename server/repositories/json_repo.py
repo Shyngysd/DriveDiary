@@ -11,6 +11,10 @@ from repositories.base import DuplicateConflict, TripRepository
 from services.day import local_date
 
 
+class StorageDataError(RuntimeError):
+    """Raised when the JSON storage cannot be loaded safely."""
+
+
 class JsonTripRepository(TripRepository):
     _locks: dict[Path, RLock] = {}
     _locks_guard = RLock()
@@ -25,6 +29,9 @@ class JsonTripRepository(TripRepository):
             self._lock = self._locks.setdefault(self.path, RLock())
         if self._seed_if_missing:
             self._initialize_storage()
+        if self.path.exists():
+            with self._lock:
+                self._read()
 
     def _initialize_storage(self) -> None:
         if self.path.exists():
@@ -67,9 +74,17 @@ class JsonTripRepository(TripRepository):
     def _read(self) -> list[Trip]:
         if not self.path.exists():
             return []
-        with self.path.open(encoding="utf-8") as file:
-            raw_trips = json.load(file)
-        return [Trip.model_validate(raw_trip) for raw_trip in raw_trips]
+        try:
+            with self.path.open(encoding="utf-8") as file:
+                raw_trips = json.load(file)
+            if not isinstance(raw_trips, list):
+                raise ValueError("root JSON value must be an array")
+            return [Trip.model_validate(raw_trip) for raw_trip in raw_trips]
+        except (OSError, json.JSONDecodeError, TypeError, ValueError) as error:
+            raise StorageDataError(
+                f"Не удалось загрузить файл хранилища {self.path}: "
+                "файл повреждён или имеет неверный формат"
+            ) from error
 
     def _write(self, trips: list[Trip]) -> None:
         self.path.parent.mkdir(parents=True, exist_ok=True)
