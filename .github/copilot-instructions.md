@@ -1,6 +1,6 @@
 # Проект: Дневник смен водителя
 
-Структура: server/ (FastAPI, Python 3.12, pytest) и app/ (Flutter 3, Dart 3)..
+Структура: server/ (FastAPI, Python 3.12, pytest) и app/ (Flutter 3, Dart 3).
 
 ## Предметная область (не нарушать)
 - Деньги только int (тенге). Никаких float/double.
