@@ -49,11 +49,20 @@ class ApiTripsRepository implements TripsRepository {
       return await request();
     } on DioException catch (error) {
       final response = error.response;
+      if (error.type == DioExceptionType.connectionError ||
+          error.type == DioExceptionType.connectionTimeout ||
+          error.type == DioExceptionType.receiveTimeout ||
+          error.type == DioExceptionType.sendTimeout) {
+        throw const TripsConnectionException(
+          'Нет связи с сервером. Проверьте подключение и адрес сервера',
+        );
+      }
+
       final body = response?.data;
       final errorBody = body is Map<String, dynamic> ? body['error'] : null;
       final message = errorBody is Map<String, dynamic>
-          ? errorBody['message'] as String? ?? 'Request failed'
-          : 'Request failed';
+          ? errorBody['message'] as String? ?? 'Что-то пошло не так'
+          : 'Что-то пошло не так';
       final code = errorBody is Map<String, dynamic>
           ? errorBody['code'] as String?
           : null;
@@ -63,7 +72,7 @@ class ApiTripsRepository implements TripsRepository {
       if (response?.statusCode == 422) {
         throw TripsValidationException(message, code: code);
       }
-      throw TripsNetworkException(message);
+      throw TripsApiException(message, code: code);
     }
   }
 }

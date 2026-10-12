@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'core/theme/app_theme.dart';
+import 'features/trips/data/api_exceptions.dart';
 import 'features/trips/domain/day_summary.dart';
 import 'features/trips/domain/trips_repository.dart';
 import 'features/trips/presentation/trips_controller.dart';
@@ -184,7 +185,10 @@ class _ErrorContent extends StatelessWidget {
       if (error != null)
         Padding(
           padding: const EdgeInsets.only(top: 8),
-          child: Text(error.toString(), textAlign: TextAlign.center),
+          child: Text(
+            tripsErrorMessage(error ?? const Object()),
+            textAlign: TextAlign.center,
+          ),
         ),
       const SizedBox(height: 16),
       Center(

@@ -50,6 +50,7 @@ final tripsControllerProvider = NotifierProvider<TripsController, TripsState>(
 
 class TripsController extends Notifier<TripsState> {
   late TripsRepository repository;
+  var _requestToken = 0;
 
   DateTime get selectedDate => state.selectedDate;
 
@@ -67,15 +68,23 @@ class TripsController extends Notifier<TripsState> {
   }
 
   Future<void> loadInitial() async {
+    final token = ++_requestToken;
     state = TripsState.loading(state.selectedDate);
     try {
       final days = await repository.listDays();
+      if (token != _requestToken) return;
       final selected = days.isEmpty
           ? _today()
           : DateTime(days.last.year, days.last.month, days.last.day);
       await _loadDate(selected);
     } catch (error) {
-      state = state.copyWith(status: TripsStatus.error, error: error);
+      if (token == _requestToken) {
+        state = TripsState(
+          status: TripsStatus.error,
+          selectedDate: state.selectedDate,
+          error: error,
+        );
+      }
     }
   }
 
@@ -93,24 +102,29 @@ class TripsController extends Notifier<TripsState> {
   }
 
   Future<void> _loadDate(DateTime date) async {
+    final token = ++_requestToken;
     state = TripsState.loading(date);
     try {
       final results = await Future.wait<Object>([
         repository.listTrips(date),
         repository.getSummary(date),
       ]);
-      state = TripsState(
-        status: TripsStatus.data,
-        selectedDate: date,
-        trips: results[0] as List<Trip>,
-        summary: results[1] as DaySummary,
-      );
+      if (token == _requestToken) {
+        state = TripsState(
+          status: TripsStatus.data,
+          selectedDate: date,
+          trips: results[0] as List<Trip>,
+          summary: results[1] as DaySummary,
+        );
+      }
     } catch (error) {
-      state = TripsState(
-        status: TripsStatus.error,
-        selectedDate: date,
-        error: error,
-      );
+      if (token == _requestToken) {
+        state = TripsState(
+          status: TripsStatus.error,
+          selectedDate: date,
+          error: error,
+        );
+      }
     }
   }
 

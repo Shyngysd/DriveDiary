@@ -3,6 +3,7 @@ import 'package:uuid/uuid.dart';
 
 import '../../../../core/format/formatters.dart';
 import '../../../../core/theme/app_theme.dart';
+import '../../data/api_exceptions.dart';
 import '../../domain/trip.dart';
 import '../../domain/trip_draft.dart';
 
@@ -196,7 +197,7 @@ class _AddTripSheetState extends State<AddTripSheet> {
       if (mounted) Navigator.of(context).pop(true);
     } catch (error) {
       if (mounted) {
-        setState(() => _serverError = error.toString());
+        setState(() => _serverError = tripsErrorMessage(error));
       }
     } finally {
       if (mounted) setState(() => _saving = false);

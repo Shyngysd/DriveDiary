@@ -16,6 +16,11 @@ class TripsConflictException extends TripsApiException {
   const TripsConflictException(super.message, {super.code});
 }
 
-class TripsNetworkException extends TripsApiException {
-  const TripsNetworkException(super.message);
+class TripsConnectionException extends TripsApiException {
+  const TripsConnectionException(super.message);
+}
+
+String tripsErrorMessage(Object error) {
+  if (error is TripsApiException) return error.message;
+  return 'Что-то пошло не так';
 }
