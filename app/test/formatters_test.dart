@@ -5,9 +5,9 @@ import 'package:app/features/trips/domain/trip.dart';
 
 void main() {
   test('formats money with non-breaking spaces and real minus', () {
-    expect(formatMoney(2400), '2\u00a0400\u00a0₸');
-    expect(formatMoney(-585), '\u2212585\u00a0₸');
-    expect(formatMoney(0), '0\u00a0₸');
+    expect(formatMoney(2400), '2\u00a0400');
+    expect(formatMoney(-585), '\u2212585');
+    expect(formatMoneyWithCurrency(0), '0\u00a0₸');
   });
 
   test('formats trip local time range', () {

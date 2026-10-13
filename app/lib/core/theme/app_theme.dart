@@ -9,9 +9,12 @@ class AppTheme {
   );
   static const receiptMoneyLarge = TextStyle(
     fontFamily: 'Manrope',
-    fontFamilyFallback: moneyFallback,
     fontSize: 40,
     fontWeight: FontWeight.w800,
+  );
+  static const moneySuffix = TextStyle(
+    fontFamily: 'Noto Sans',
+    fontSize: 12,
   );
 
   static const pageBackground = Color(0xFFEEF1F6);

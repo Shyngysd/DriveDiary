@@ -46,10 +46,10 @@ Future<void> _loadFonts() async {
         .load(),
     (FontLoader(
       'Manrope',
-    )..addFont(rootBundle.load('assets/fonts/Manrope-Variable.ttf'))).load(),
+    )..addFont(rootBundle.load('assets/fonts/Manrope-ExtraBold.ttf'))).load(),
     (FontLoader(
       'Noto Sans',
-    )..addFont(rootBundle.load('assets/fonts/NotoSans-Regular.ttf'))).load(),
+    )..addFont(rootBundle.load('assets/fonts/NotoSans-Static.ttf'))).load(),
   ]);
 }
 

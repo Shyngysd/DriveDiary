@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../../core/format/formatters.dart';
+import '../../../../core/format/money_text.dart';
 import '../../../../core/theme/app_theme.dart';
 
 class TotalRow extends StatelessWidget {
@@ -10,7 +11,7 @@ class TotalRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Semantics(
-    label: 'На руки: ${formatMoney(amount)}',
+    label: 'На руки: ${formatMoneyWithCurrency(amount)}',
     child: Row(
       crossAxisAlignment: CrossAxisAlignment.end,
       children: [
@@ -24,8 +25,8 @@ class TotalRow extends StatelessWidget {
             ),
           ),
         ),
-        Text(
-          formatMoney(amount),
+        MoneyText(
+          amount: amount,
           style: AppTheme.receiptMoneyLarge.copyWith(color: AppTheme.ink),
         ),
       ],

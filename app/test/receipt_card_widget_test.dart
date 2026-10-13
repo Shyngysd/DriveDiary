@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import 'package:app/core/format/money_text.dart';
 import 'package:app/core/theme/app_theme.dart';
 import 'package:app/features/trips/domain/day_summary.dart';
 import 'package:app/features/trips/domain/trip.dart';
@@ -51,13 +52,38 @@ void main() {
   testWidgets('light receipt keeps totals and ink colors', (tester) async {
     await tester.pumpWidget(_fixture(AppTheme.light()));
 
-    expect(find.text('3 315 ₸'), findsOneWidget);
-    expect(find.text('1 500 ₸ / 2 400 ₸'), findsOneWidget);
-    expect(find.text('−585 ₸'), findsOneWidget);
+    final richTexts = tester
+        .widgetList<RichText>(find.byType(RichText))
+        .map((widget) => widget.text.toPlainText())
+        .toList();
+    expect(richTexts, contains('3 315 ₸'));
+    expect(richTexts, contains('1 500 ₸'));
+    expect(richTexts, contains('2 400 ₸'));
+    expect(richTexts, contains('−585 ₸'));
     expect(
       tester.widget<Text>(find.text('08:10–08:32 карта')).style?.color,
       AppTheme.ink,
     );
+  });
+
+  testWidgets('MoneyText uses Noto Sans for the currency glyph', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      const MaterialApp(
+        home: MoneyText(
+          amount: 3315,
+          style: TextStyle(fontFamily: 'Manrope', fontSize: 40),
+        ),
+      ),
+    );
+
+    final richText = tester.widget<RichText>(find.byType(RichText));
+    final spans = richText.text as TextSpan;
+    final moneySpan = spans.children!.single as TextSpan;
+    final currencySpan = moneySpan.children![1] as TextSpan;
+    expect(currencySpan.text, ' ₸');
+    expect(currencySpan.style?.fontFamily, 'Noto Sans');
   });
 
   testWidgets('dark receipt keeps paper and ink colors', (tester) async {

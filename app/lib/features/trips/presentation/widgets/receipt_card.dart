@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../../core/format/formatters.dart';
+import '../../../../core/format/money_text.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../domain/day_summary.dart';
 import '../../domain/trip.dart';
@@ -85,20 +86,41 @@ class ReceiptCard extends StatelessWidget {
               const DashedDivider(),
               ReceiptSummaryRow(
                 label: 'Поездок',
-                value: summary.tripsCount.toString(),
+                value: Text(
+                  summary.tripsCount.toString(),
+                  style: AppTheme.receiptMoney.copyWith(color: AppTheme.ink),
+                ),
               ),
               ReceiptSummaryRow(
                 label: 'Выручка',
-                value: formatMoney(summary.revenue),
+                value: MoneyText(
+                  amount: summary.revenue,
+                  style: AppTheme.receiptMoney.copyWith(color: AppTheme.ink),
+                ),
               ),
               ReceiptSummaryRow(
                 label: 'Комиссия',
-                value: formatMoney(-summary.commission),
+                value: MoneyText(
+                  amount: -summary.commission,
+                  style: AppTheme.receiptMoney.copyWith(color: AppTheme.ink),
+                ),
               ),
               ReceiptSummaryRow(
                 label: 'Наличные / карта',
-                value:
-                    '${formatMoney(summary.cashTotal)} / ${formatMoney(summary.cardTotal)}',
+                value: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    MoneyText(
+                      amount: summary.cashTotal,
+                      style: AppTheme.receiptMoney.copyWith(color: AppTheme.ink),
+                    ),
+                    const Text(' / '),
+                    MoneyText(
+                      amount: summary.cardTotal,
+                      style: AppTheme.receiptMoney.copyWith(color: AppTheme.ink),
+                    ),
+                  ],
+                ),
               ),
               const DashedDivider(),
               TotalRow(amount: summary.net),

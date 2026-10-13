@@ -8,8 +8,10 @@ String formatMoney(int amount) {
     final start = index - 3 < 0 ? 0 : index - 3;
     groups.insert(0, digits.substring(start, index));
   }
-  return '$sign${groups.join('\u00a0')}\u00a0₸';
+  return '$sign${groups.join('\u00a0')}';
 }
+
+String formatMoneyWithCurrency(int amount) => '${formatMoney(amount)}\u00a0₸';
 
 String formatTimeRange(Trip trip) =>
     '${_time(trip.start.local)}–${_time(trip.end.local)}';

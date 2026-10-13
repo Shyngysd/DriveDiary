@@ -115,7 +115,7 @@ class _AddTripSheetState extends State<AddTripSheet> {
                   decoration: const InputDecoration(
                     labelText: 'Сумма',
                     suffixText: '₸',
-                    suffixStyle: AppTheme.receiptMoney,
+                    suffixStyle: AppTheme.moneySuffix,
                     border: OutlineInputBorder(),
                   ),
                   validator: (_) => _draft().validate()['amount'],
@@ -145,7 +145,7 @@ class _AddTripSheetState extends State<AddTripSheet> {
                   decoration: const InputDecoration(
                     labelText: 'Комиссия',
                     suffixText: '₸',
-                    suffixStyle: AppTheme.receiptMoney,
+                    suffixStyle: AppTheme.moneySuffix,
                     border: OutlineInputBorder(),
                   ),
                   validator: (_) => _draft().validate()['commission'],

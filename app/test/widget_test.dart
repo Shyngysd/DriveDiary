@@ -1,5 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 
+import 'package:flutter/material.dart';
+
 import 'package:app/features/trips/domain/day_summary.dart';
 import 'package:app/features/trips/domain/trip.dart';
 import 'package:app/features/trips/domain/trips_repository.dart';
@@ -51,8 +53,13 @@ void main() {
     await tester.pumpWidget(MyApp(repository: _ReferenceRepository()));
     await tester.pumpAndSettle();
 
-    expect(find.text('3 315 ₸'), findsOneWidget);
-    expect(find.text('1 500 ₸ / 2 400 ₸'), findsOneWidget);
-    expect(find.text('−585 ₸'), findsOneWidget);
+    final richTexts = tester
+        .widgetList<RichText>(find.byType(RichText))
+        .map((widget) => widget.text.toPlainText())
+        .toList();
+    expect(richTexts, contains('3 315 ₸'));
+    expect(richTexts, contains('1 500 ₸'));
+    expect(richTexts, contains('2 400 ₸'));
+    expect(richTexts, contains('−585 ₸'));
   });
 }

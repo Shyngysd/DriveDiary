@@ -60,7 +60,7 @@ void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
   test('money styles use the bundled glyph fallback', () async {
-    final font = await rootBundle.load('assets/fonts/NotoSans-Regular.ttf');
+    final font = await rootBundle.load('assets/fonts/NotoSans-Static.ttf');
 
     expect(hasGlyph(font, 0x20B8), isTrue);
     expect(hasGlyph(font, 0x2212), isTrue);

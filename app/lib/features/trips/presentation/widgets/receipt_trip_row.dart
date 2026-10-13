@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../../core/format/formatters.dart';
+import '../../../../core/format/money_text.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../domain/trip.dart';
 
@@ -13,7 +14,8 @@ class ReceiptTripRow extends StatelessWidget {
   Widget build(BuildContext context) {
     final method = trip.payment == PaymentMethod.cash ? 'нал.' : 'карта';
     return Semantics(
-      label: '${formatTimeRange(trip)}, $method, ${formatMoney(trip.amount)}',
+      label:
+          '${formatTimeRange(trip)}, $method, ${formatMoneyWithCurrency(trip.amount)}',
       child: Row(
         children: [
           Expanded(
@@ -26,8 +28,8 @@ class ReceiptTripRow extends StatelessWidget {
               ),
             ),
           ),
-          Text(
-            formatMoney(trip.amount),
+          MoneyText(
+            amount: trip.amount,
             style: AppTheme.receiptMoney.copyWith(color: AppTheme.ink),
           ),
         ],

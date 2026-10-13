@@ -10,7 +10,7 @@ class ReceiptSummaryRow extends StatelessWidget {
   });
 
   final String label;
-  final String value;
+  final Widget value;
 
   @override
   Widget build(BuildContext context) => Padding(
@@ -27,7 +27,7 @@ class ReceiptSummaryRow extends StatelessWidget {
             ),
           ),
         ),
-        Text(value, style: AppTheme.receiptMoney.copyWith(color: AppTheme.ink)),
+        value,
       ],
     ),
   );
