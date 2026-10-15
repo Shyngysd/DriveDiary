@@ -17,8 +17,12 @@ DriveDiary — монорепозиторий дневника смен води
 
 Чек отображается на главном экране Flutter-приложения после запуска команды из раздела [Быстрый старт](#3-быстрый-старт):
 
-![Чек, светлая тема](app/test/goldens/receipt_light.png)
-
+<table align="center">
+  <tr>
+    <td align="center"><img src="app/test/goldens/receipt_light.png" width="280"><br><sub>Светлая тема</sub></td>
+    <td align="center"><img src="app/test/goldens/receipt_dark.png" width="280"><br><sub>Тёмная тема</sub></td>
+  </tr>
+</table>
 
 ## 2. Требования и покрытие
 
